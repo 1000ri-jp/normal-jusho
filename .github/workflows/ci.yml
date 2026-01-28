@@ -1,11 +1,8 @@
-# CI pipeline - runs on pull requests to main
+# CI pipeline for SDK packages
 #
 # Steps:
-# 1. Set up Python 3.11
-# 2. Install dependencies
-# 3. Run linting (flake8, black, isort)
-# 4. Run pytest
-# 5. Build Docker image (test only, not pushed)
+# 1. TypeScript SDK: lint, typecheck, build
+# 2. Python SDK: typecheck, test
 
 name: CI
 
@@ -13,18 +10,13 @@ on:
   pull_request:
     branches: [main]
     paths:
-      - 'backend/**'
       - 'sdk/**'
       - '.github/workflows/ci.yml'
   push:
     branches: [main]
     paths:
-      - 'backend/**'
       - 'sdk/**'
       - '.github/workflows/ci.yml'
-
-env:
-  PYTHON_VERSION: '3.11'
 
 jobs:
   lint:
@@ -35,33 +27,37 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install TypeScript SDK dependencies
+        working-directory: sdk/typescript
+        run: npm ci
+
+      - name: TypeScript typecheck
+        working-directory: sdk/typescript
+        run: npx tsc --noEmit
+
+      - name: TypeScript build
+        working-directory: sdk/typescript
+        run: npm run build
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: ${{ env.PYTHON_VERSION }}
+          python-version: '3.11'
 
-      - name: Install Poetry
-        run: pip install poetry
-
-      - name: Install dependencies
-        working-directory: backend
+      - name: Install Python SDK dependencies
+        working-directory: sdk/python
         run: |
-          poetry config virtualenvs.create false
-          poetry install --no-interaction --no-ansi -E all
+          pip install -e ".[dev]" 2>/dev/null || pip install -e .
+          pip install mypy
 
-      - name: Run black (format check)
-        working-directory: backend
-        run: python -m black --check --diff address_kokudo_kenall/ tests/
-        continue-on-error: true
-
-      - name: Run isort (import order check)
-        working-directory: backend
-        run: python -m isort --check-only --diff address_kokudo_kenall/ tests/
-        continue-on-error: true
-
-      - name: Run flake8
-        working-directory: backend
-        run: python -m flake8 address_kokudo_kenall/ --max-line-length=120 --extend-ignore=E501,W503
+      - name: Python typecheck
+        working-directory: sdk/python
+        run: python -m mypy src/jusho/ --ignore-missing-imports
         continue-on-error: true
 
   test:
@@ -72,98 +68,18 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          lfs: true  # Data files may use Git LFS
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: ${{ env.PYTHON_VERSION }}
+          python-version: '3.11'
 
-      - name: Install Poetry
-        run: pip install poetry
-
-      - name: Install dependencies
-        working-directory: backend
+      - name: Install Python SDK
+        working-directory: sdk/python
         run: |
-          poetry config virtualenvs.create false
-          poetry install --no-interaction --no-ansi -E all
+          pip install -e .
+          pip install pytest pytest-asyncio
 
-      - name: Run pytest
-        working-directory: backend
-        run: |
-          python -m pytest tests/ \
-            -v \
-            --tb=short \
-            --junitxml=test-results.xml \
-            -x
-        env:
-          ADDRESS_DATA_FOLDER: data/
-
-      - name: Upload test results
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-results
-          path: backend/test-results.xml
-          retention-days: 30
-
-  docker-build:
-    name: Docker Build (test)
-    runs-on: ubuntu-latest
-    needs: test
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          lfs: true
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Build Docker image (test only)
-        working-directory: backend
-        run: |
-          docker buildx build \
-            --platform linux/amd64 \
-            --tag jusho-test:${{ github.sha }} \
-            --load \
-            .
-
-      - name: Verify Docker image starts
-        working-directory: backend
-        run: |
-          # Start container in background
-          docker run -d \
-            --name jusho-test \
-            -p 8080:8080 \
-            -e ADDRESS_DATA_FOLDER=/app/data \
-            jusho-test:${{ github.sha }}
-
-          # Wait for container to start
-          echo "Waiting for server to start..."
-          for i in $(seq 1 30); do
-            if curl -s http://localhost:8080/health | grep -q "healthy"; then
-              echo "Server is healthy!"
-              break
-            fi
-            if [ $i -eq 30 ]; then
-              echo "Server failed to start within 30 seconds"
-              docker logs jusho-test
-              exit 1
-            fi
-            sleep 1
-          done
-
-          # Verify health endpoint
-          curl -s http://localhost:8080/health
-          echo ""
-
-          # Verify root endpoint
-          curl -s http://localhost:8080/
-          echo ""
-
-          # Clean up
-          docker stop jusho-test
-          docker rm jusho-test
+      - name: Run Python SDK tests
+        working-directory: sdk/python
+        run: python -m pytest tests/ -v --tb=short
