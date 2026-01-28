@@ -108,8 +108,8 @@ curl "https://api.jusho.dev/normalize?address=渋谷区道玄坂1-2-3"
 
 Official SDKs are available for:
 
-- **TypeScript/JavaScript**: `npm install jusho` -- See [TypeScript SDK Guide](sdk-typescript.md)
-- **Python**: `pip install jusho` -- See [Python SDK Guide](sdk-python.md)
+- **TypeScript/JavaScript**: `npm install normal-jusho` -- See [TypeScript SDK Guide](sdk-typescript.md)
+- **Python**: `pip install normal-jusho` -- See [Python SDK Guide](sdk-python.md)
 
 ## MCP Integration
 

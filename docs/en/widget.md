@@ -86,7 +86,7 @@ function PostalCodeForm() {
 For more control, use the SDK directly instead of the widget:
 
 ```typescript
-import { Jusho } from 'jusho';
+import { Jusho } from 'normal-jusho';
 
 const jusho = new Jusho();
 

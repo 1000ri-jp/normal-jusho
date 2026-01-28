@@ -1,11 +1,11 @@
 # Python SDK Guide
 
-The `jusho` Python package provides a typed client for the Jusho Japanese address normalization API. It supports both synchronous and asynchronous usage via `httpx`.
+The `normal-jusho` Python package provides a typed client for the Jusho Japanese address normalization API. It supports both synchronous and asynchronous usage via `httpx`.
 
 ## Installation
 
 ```bash
-pip install jusho
+pip install normal-jusho
 ```
 
 Requires Python 3.9+.

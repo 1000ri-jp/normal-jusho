@@ -18,15 +18,15 @@
 ## インストール
 
 ```bash
-npm install jusho
+npm install normal-jusho
 ```
 
 ```bash
-yarn add jusho
+yarn add normal-jusho
 ```
 
 ```bash
-pnpm add jusho
+pnpm add normal-jusho
 ```
 
 ## クイックスタート

@@ -1,5 +1,5 @@
 {
-  "name": "jusho",
+  "name": "normal-jusho",
   "version": "0.1.0",
   "description": "TypeScript/JavaScript SDK for the Jusho Japanese address normalization API",
   "main": "./dist/index.js",
@@ -46,11 +46,11 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/jusho-dev/jusho"
+    "url": "https://github.com/1000ri-jp/normal-jusho"
   },
   "homepage": "https://jusho.dev",
   "bugs": {
-    "url": "https://github.com/jusho-dev/jusho/issues"
+    "url": "https://github.com/1000ri-jp/normal-jusho/issues"
   },
   "engines": {
     "node": ">=18.0.0"

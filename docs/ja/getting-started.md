@@ -124,11 +124,11 @@ curl -X POST https://api.jusho.dev/normalize/batch \
 ### TypeScript / JavaScript
 
 ```bash
-npm install jusho
+npm install normal-jusho
 ```
 
 ```typescript
-import { Jusho } from 'jusho';
+import { Jusho } from 'normal-jusho';
 
 const jusho = new Jusho();
 const result = await jusho.normalize('東京都千代田区千代田1-1');
@@ -138,7 +138,7 @@ console.log(result.codes.post_code);  // "1000001"
 ### Python
 
 ```bash
-pip install jusho
+pip install normal-jusho
 ```
 
 ```python

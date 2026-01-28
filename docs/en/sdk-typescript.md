@@ -1,17 +1,17 @@
 # TypeScript SDK Guide
 
-The `jusho` npm package provides a typed client for the Jusho Japanese address normalization API. It works in both Node.js (18+) and modern browsers.
+The `normal-jusho` npm package provides a typed client for the Jusho Japanese address normalization API. It works in both Node.js (18+) and modern browsers.
 
 ## Installation
 
 ```bash
-npm install jusho
+npm install normal-jusho
 ```
 
 ## Quick Start
 
 ```typescript
-import { Jusho } from 'jusho';
+import { Jusho } from 'normal-jusho';
 
 const jusho = new Jusho();
 
@@ -222,7 +222,7 @@ import {
   NetworkError,
   TimeoutError,
   ValidationError,
-} from 'jusho';
+} from 'normal-jusho';
 
 try {
   const result = await jusho.normalize('...');
@@ -280,7 +280,7 @@ The SDK uses the standard `fetch` API and works in all modern browsers:
 
 ```html
 <script type="module">
-  import { Jusho } from 'https://cdn.jsdelivr.net/npm/jusho/+esm';
+  import { Jusho } from 'https://cdn.jsdelivr.net/npm/normal-jusho/+esm';
 
   const jusho = new Jusho();
   const result = await jusho.normalize('東京都渋谷区道玄坂1-2-3');

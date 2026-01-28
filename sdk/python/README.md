@@ -7,7 +7,7 @@ Jusho normalizes free-form Japanese address strings into structured, machine-rea
 ## Installation
 
 ```bash
-pip install jusho
+pip install normal-jusho
 ```
 
 ## Quick Start
@@ -233,7 +233,7 @@ print(result.raw)  # Full JSON response as a dict
 ## インストール
 
 ```bash
-pip install jusho
+pip install normal-jusho
 ```
 
 ## 基本的な使い方
