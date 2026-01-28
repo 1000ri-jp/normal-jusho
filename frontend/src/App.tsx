@@ -5,6 +5,7 @@ import { UseCases } from './components/UseCases';
 import { Usage } from './components/Usage';
 import { Footer } from './components/Footer';
 import { ApiDocs } from './components/ApiDocs';
+import { Status } from './components/Status';
 import './index.css';
 
 function HomePage() {
@@ -27,6 +28,7 @@ function App() {
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/docs" element={<ApiDocs />} />
+        <Route path="/status" element={<Status />} />
       </Routes>
     </BrowserRouter>
   );

@@ -1,0 +1,139 @@
+# Deploy to Google Cloud Run on push to main
+#
+# Prerequisites:
+# - GCP project with Cloud Run and Container Registry enabled
+# - GitHub secrets:
+#   - GCP_PROJECT_ID: Google Cloud project ID
+#   - GCP_SA_KEY: Service account key JSON (with Cloud Run Admin + Storage Admin roles)
+#   - GCP_REGION: Deployment region (default: asia-northeast1)
+
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/deploy.yml'
+  workflow_dispatch:
+
+env:
+  SERVICE_NAME: address-normalizer
+  GCP_REGION: ${{ secrets.GCP_REGION || 'asia-northeast1' }}
+  MIN_INSTANCES: '1'
+  MAX_INSTANCES: '5'
+  CONCURRENCY: '50'
+  MEMORY: '4Gi'
+  CPU: '2'
+
+jobs:
+  deploy:
+    name: Build & Deploy
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+
+      - name: Configure Docker for GCR
+        run: gcloud auth configure-docker --quiet
+
+      - name: Build Docker image
+        working-directory: backend
+        run: |
+          docker build \
+            -t gcr.io/${{ secrets.GCP_PROJECT_ID }}/${{ env.SERVICE_NAME }}:${{ github.sha }} \
+            -t gcr.io/${{ secrets.GCP_PROJECT_ID }}/${{ env.SERVICE_NAME }}:latest \
+            .
+
+      - name: Push Docker image
+        run: |
+          docker push gcr.io/${{ secrets.GCP_PROJECT_ID }}/${{ env.SERVICE_NAME }}:${{ github.sha }}
+          docker push gcr.io/${{ secrets.GCP_PROJECT_ID }}/${{ env.SERVICE_NAME }}:latest
+
+      - name: Deploy to Cloud Run
+        run: |
+          gcloud run deploy ${{ env.SERVICE_NAME }} \
+            --image gcr.io/${{ secrets.GCP_PROJECT_ID }}/${{ env.SERVICE_NAME }}:${{ github.sha }} \
+            --region ${{ env.GCP_REGION }} \
+            --platform managed \
+            --allow-unauthenticated \
+            --memory ${{ env.MEMORY }} \
+            --cpu ${{ env.CPU }} \
+            --min-instances ${{ env.MIN_INSTANCES }} \
+            --max-instances ${{ env.MAX_INSTANCES }} \
+            --concurrency ${{ env.CONCURRENCY }} \
+            --timeout 300 \
+            --cpu-boost \
+            --set-env-vars "RATE_LIMIT_PER_MINUTE=100,RATE_LIMIT_PER_HOUR=50000" \
+            --project ${{ secrets.GCP_PROJECT_ID }}
+
+      - name: Get service URL
+        id: service-url
+        run: |
+          URL=$(gcloud run services describe ${{ env.SERVICE_NAME }} \
+            --region ${{ env.GCP_REGION }} \
+            --project ${{ secrets.GCP_PROJECT_ID }} \
+            --format 'value(status.url)')
+          echo "url=$URL" >> $GITHUB_OUTPUT
+          echo "Service URL: $URL"
+
+      - name: Verify health check
+        run: |
+          echo "Waiting for deployment to propagate..."
+          sleep 10
+
+          echo "=== Health Check ==="
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" "${{ steps.service-url.outputs.url }}/health")
+          if [ "$STATUS" = "200" ]; then
+            echo "Health check passed (HTTP $STATUS)"
+          else
+            echo "Health check failed (HTTP $STATUS)"
+            curl -s "${{ steps.service-url.outputs.url }}/health"
+            exit 1
+          fi
+
+          echo ""
+          echo "=== Service Info ==="
+          curl -s "${{ steps.service-url.outputs.url }}/"
+          echo ""
+
+          echo ""
+          echo "=== Ready Status ==="
+          curl -s "${{ steps.service-url.outputs.url }}/ready"
+          echo ""
+
+      - name: Post deployment summary
+        if: success()
+        run: |
+          echo "## Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Item | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Service | ${{ env.SERVICE_NAME }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Region | ${{ env.GCP_REGION }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| URL | ${{ steps.service-url.outputs.url }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Image | \`gcr.io/${{ secrets.GCP_PROJECT_ID }}/${{ env.SERVICE_NAME }}:${{ github.sha }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Min Instances | ${{ env.MIN_INSTANCES }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Max Instances | ${{ env.MAX_INSTANCES }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Memory | ${{ env.MEMORY }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| CPU | ${{ env.CPU }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Endpoints" >> $GITHUB_STEP_SUMMARY
+          echo "- Health: ${{ steps.service-url.outputs.url }}/health" >> $GITHUB_STEP_SUMMARY
+          echo "- Swagger UI: ${{ steps.service-url.outputs.url }}/docs" >> $GITHUB_STEP_SUMMARY
+          echo "- Normalize: ${{ steps.service-url.outputs.url }}/normalize?address=..." >> $GITHUB_STEP_SUMMARY
+          echo "- MCP: ${{ steps.service-url.outputs.url }}/mcp" >> $GITHUB_STEP_SUMMARY

@@ -3,3 +3,16 @@
 .claude/
 backend/
 .env
+
+# Build artifacts
+node_modules/
+__pycache__/
+*.pyc
+*.egg-info/
+build/
+sdk/python/dist/
+sdk/typescript/dist/
+
+# IDE
+.vscode/
+.idea/
