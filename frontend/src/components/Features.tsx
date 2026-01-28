@@ -4,7 +4,9 @@ import {
   Hash,
   MapPin,
   Layers,
-  Zap
+  Zap,
+  Shield,
+  Globe
 } from 'lucide-react';
 
 const features = [
@@ -38,6 +40,16 @@ const features = [
     title: '高速レスポンス',
     description: '最適化されたアルゴリズムで、ミリ秒単位の高速処理',
   },
+  {
+    icon: Shield,
+    title: '信頼度スコア',
+    description: '正規化結果の確からしさを0〜1のスコアとマッチレベルで返却',
+  },
+  {
+    icon: Globe,
+    title: 'ローマ字対応',
+    description: '都道府県・市区町村・町域のローマ字表記を自動生成',
+  },
 ];
 
 export function Features() {
@@ -53,7 +65,7 @@ export function Features() {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
           {features.map((feature) => (
             <div
               key={feature.title}

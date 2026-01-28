@@ -1,10 +1,21 @@
-import { CheckCircle, AlertCircle, Building2, Briefcase, Navigation } from 'lucide-react';
+import { CheckCircle, AlertCircle, Building2, Briefcase, Navigation, Shield, Globe, ExternalLink } from 'lucide-react';
 import type { NormalizeResponse } from '../types/address';
 
 interface DemoResultProps {
   result: NormalizeResponse | null;
   inputAddress: string | null;
   error: string | null;
+}
+
+const ISSUES_URL = 'https://github.com/1000ri-jp/normal-jusho/issues/new';
+
+function buildIssueUrl(address: string) {
+  const params = new URLSearchParams({
+    title: `正規化できない住所: ${address}`,
+    body: `## 入力した住所\n\`${address}\`\n\n## 期待する結果\n\n\n## 実際の結果\n\n`,
+    labels: 'address-data',
+  });
+  return `${ISSUES_URL}?${params.toString()}`;
 }
 
 export function DemoResult({ result, inputAddress, error }: DemoResultProps) {
@@ -16,6 +27,17 @@ export function DemoResult({ result, inputAddress, error }: DemoResultProps) {
           <span className="font-medium">エラー</span>
         </div>
         <p className="mt-2 text-red-600">{error}</p>
+        {inputAddress && (
+          <a
+            href={buildIssueUrl(inputAddress)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1 mt-3 text-sm text-red-600 hover:text-red-800 underline"
+          >
+            <ExternalLink className="w-3.5 h-3.5" />
+            この住所を GitHub で報告する
+          </a>
+        )}
       </div>
     );
   }
@@ -94,7 +116,44 @@ export function DemoResult({ result, inputAddress, error }: DemoResultProps) {
           {fullKana && (
             <p className="text-xs text-gray-500 mt-1 ml-1">{fullKana}</p>
           )}
+          {result.romaji?.full && (
+            <div className="flex items-center gap-1 mt-1 ml-1">
+              <Globe className="w-3 h-3 text-gray-400" />
+              <p className="text-xs text-gray-500">{result.romaji.full}</p>
+            </div>
+          )}
         </div>
+
+        {/* Confidence & Match Level */}
+        {(result.confidence !== undefined || result.match_level_label) && (
+          <div className="flex items-center gap-3 flex-wrap">
+            {result.confidence !== undefined && (
+              <div className="flex items-center gap-1.5">
+                <Shield className={`w-4 h-4 ${result.confidence >= 0.8 ? 'text-green-600' : result.confidence >= 0.5 ? 'text-yellow-600' : 'text-red-500'}`} />
+                <span className="text-sm text-gray-700">信頼度:</span>
+                <span className={`text-sm font-semibold ${result.confidence >= 0.8 ? 'text-green-700' : result.confidence >= 0.5 ? 'text-yellow-700' : 'text-red-600'}`}>
+                  {(result.confidence * 100).toFixed(0)}%
+                </span>
+              </div>
+            )}
+            {result.match_level_label && (
+              <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">
+                {result.match_level_label}
+              </span>
+            )}
+            {result.confidence !== undefined && result.confidence < 0.5 && inputAddress && (
+              <a
+                href={buildIssueUrl(inputAddress)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-xs text-gray-500 hover:text-gray-700 underline"
+              >
+                <ExternalLink className="w-3 h-3" />
+                結果に問題があれば報告
+              </a>
+            )}
+          </div>
+        )}
 
         {/* Address details */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">

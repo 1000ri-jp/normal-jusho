@@ -17,6 +17,13 @@ export interface BuildingInfo {
   room: string;
 }
 
+export interface RomajiInfo {
+  pref: string;
+  city: string;
+  town: string;
+  full: string;
+}
+
 export interface NormalizeResponse {
   post_code: string;
   pref: string;
@@ -46,6 +53,10 @@ export interface NormalizeResponse {
   town_code?: string;
   jigyosyo_info?: JigyosyoInfo;
   building_info?: BuildingInfo;
+  romaji?: RomajiInfo;
+  confidence?: number;
+  match_level?: number;
+  match_level_label?: string;
 }
 
 export interface NormalizeError {

@@ -1,4 +1,4 @@
-import { Code, Terminal, Copy, Check } from 'lucide-react';
+import { Code, Terminal, Copy, Check, Package } from 'lucide-react';
 import { useState } from 'react';
 
 function CopyButton({ text }: { text: string }) {
@@ -69,11 +69,67 @@ export function Usage() {
             利用方法
           </h2>
           <p className="text-gray-600">
-            REST API または MCP で簡単に統合
+            SDK、REST API、MCP で簡単に統合
           </p>
         </div>
 
         <div className="space-y-8">
+          {/* SDK */}
+          <div className="bg-white rounded-xl p-6 shadow-sm">
+            <div className="flex items-center gap-2 mb-4">
+              <Package className="w-5 h-5 text-green-600" />
+              <h3 className="text-lg font-semibold text-gray-900">SDK</h3>
+            </div>
+
+            <p className="text-gray-600 mb-4">
+              Python と TypeScript の公式 SDK を提供しています。パッケージマネージャでインストールするだけですぐに利用可能です。
+            </p>
+
+            <div className="grid md:grid-cols-2 gap-6">
+              {/* Python */}
+              <div>
+                <p className="text-sm font-medium text-gray-700 mb-2">Python</p>
+                <div className="relative">
+                  <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto text-sm">
+                    <code>{`pip install jusho`}</code>
+                  </pre>
+                  <CopyButton text="pip install jusho" />
+                </div>
+                <div className="relative mt-3">
+                  <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto text-sm">
+                    <code>{`import jusho
+
+result = jusho.normalize("東京都渋谷区渋谷２ー２１ー１")
+print(result.full_address)
+# => 東京都渋谷区渋谷二丁目21-1`}</code>
+                  </pre>
+                  <CopyButton text={`import jusho\n\nresult = jusho.normalize("東京都渋谷区渋谷２ー２１ー１")\nprint(result.full_address)`} />
+                </div>
+              </div>
+
+              {/* TypeScript */}
+              <div>
+                <p className="text-sm font-medium text-gray-700 mb-2">TypeScript</p>
+                <div className="relative">
+                  <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto text-sm">
+                    <code>{`npm install jusho`}</code>
+                  </pre>
+                  <CopyButton text="npm install jusho" />
+                </div>
+                <div className="relative mt-3">
+                  <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto text-sm">
+                    <code>{`import { normalize } from "jusho";
+
+const result = await normalize("東京都渋谷区渋谷２ー２１ー１");
+console.log(result.fullAddress);
+// => 東京都渋谷区渋谷二丁目21-1`}</code>
+                  </pre>
+                  <CopyButton text={`import { normalize } from "jusho";\n\nconst result = await normalize("東京都渋谷区渋谷２ー２１ー１");\nconsole.log(result.fullAddress);`} />
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* REST API */}
           <div className="bg-white rounded-xl p-6 shadow-sm">
             <div className="flex items-center gap-2 mb-4">

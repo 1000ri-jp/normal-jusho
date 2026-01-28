@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { MapPin, Github, FileText, Twitter } from 'lucide-react';
+import { MapPin, Github, FileText, Twitter, CircleDot } from 'lucide-react';
 
 export function Footer() {
   return (
@@ -27,13 +27,22 @@ export function Footer() {
               <span>API ドキュメント</span>
             </Link>
             <a
-              href="#"
+              href="https://github.com/1000ri-jp/normal-jusho"
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
             >
               <Github className="w-4 h-4" />
               <span>GitHub</span>
+            </a>
+            <a
+              href="https://github.com/1000ri-jp/normal-jusho/issues"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
+            >
+              <CircleDot className="w-4 h-4" />
+              <span>正規化できない住所を報告</span>
             </a>
             <a
               href="https://x.com/senri_naofumi"

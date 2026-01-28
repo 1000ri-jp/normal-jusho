@@ -40,6 +40,10 @@ function transformResponse(data: any): NormalizeResponse {
     phone_code: '',
     jigyosyo_info: data.jigyosyo_info,
     building_info: data.building_info,
+    romaji: data.romaji,
+    confidence: data.meta?.confidence,
+    match_level: data.meta?.match_level,
+    match_level_label: data.meta?.match_level_label,
   };
 }
 
