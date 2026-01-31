@@ -117,12 +117,43 @@ export interface GeoInfo {
 export interface MetaInfo {
   /** Match type: "address" | "building" | "jigyosyo" */
   match_type: string;
+  /** Match level: 0=none, 1=pref, 2=city, 3=town, 4=block, 5=full */
+  match_level: number;
+  /** Match level label: "none" | "pref" | "city" | "town" | "block" | "full" */
+  match_level_label: string;
+  /** Confidence score (0.0-1.0) */
+  confidence: number;
   /** Whether this is a business postal code (事業所郵便番号) */
   is_jigyosyo: boolean;
   /** Whether this is a large building (大型建物) */
   is_tatemono: boolean;
   /** API version */
   version: string;
+}
+
+/**
+ * Romaji (romanized) address components.
+ */
+export interface RomajiInfo {
+  /** Prefecture in romaji */
+  pref: string;
+  /** City in romaji */
+  city: string;
+  /** Town in romaji */
+  town: string;
+  /** Full address in romaji */
+  full: string;
+}
+
+/**
+ * Kyoto street name (通り名) information.
+ * Only present for Kyoto city addresses that include street directions.
+ */
+export interface ToorinaInfo {
+  /** Street name value (e.g., "烏丸通御池上ル") */
+  value: string;
+  /** Full address including street name */
+  full_address_with_toorina: string;
 }
 
 /**
@@ -135,12 +166,16 @@ export interface NormalizeResponse {
   address_variants: AddressVariantsInfo;
   /** Katakana readings */
   kana: KanaInfo;
+  /** Romaji (romanized) readings */
+  romaji?: RomajiInfo;
   /** Administrative and postal codes */
   codes: CodesInfo;
   /** Geographic coordinates */
   geo: GeoInfo;
   /** Normalization metadata */
   meta: MetaInfo;
+  /** Kyoto street name info (通り名) - only present for Kyoto addresses */
+  toorina?: ToorinaInfo;
 }
 
 // ---------------------------------------------------------------------------

@@ -44,8 +44,10 @@ from .models import (
     NormalizeResult,
     PostalResult,
     ReverseResult,
+    RomajiInfo,
     SuggestItem,
     SuggestResult,
+    ToorinaInfo,
     ValidationResult,
     VariantAddress,
 )
@@ -70,8 +72,10 @@ __all__ = [
     "NormalizeResult",
     "PostalResult",
     "ReverseResult",
+    "RomajiInfo",
     "SuggestItem",
     "SuggestResult",
+    "ToorinaInfo",
     "ValidationResult",
     "VariantAddress",
     # Errors

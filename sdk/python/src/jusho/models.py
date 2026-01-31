@@ -123,15 +123,53 @@ class MetaInfo:
     Attributes:
         match_type: How the address was matched
             (``"address"``, ``"building"``, or ``"jigyosyo"``).
+        match_level: Match level (0=none, 1=pref, 2=city, 3=town, 4=block, 5=full).
+        match_level_label: Match level label ("none", "pref", "city", "town", "block", "full").
+        confidence: Confidence score (0.0-1.0).
         is_jigyosyo: True if matched via the business-office dictionary.
         is_tatemono: True if matched via the large-building dictionary.
         version: API version string.
     """
 
     match_type: str = ""
+    match_level: int = 0
+    match_level_label: str = ""
+    confidence: float = 0.0
     is_jigyosyo: bool = False
     is_tatemono: bool = False
     version: str = ""
+
+
+@dataclass(frozen=True)
+class RomajiInfo:
+    """Romaji (romanized) readings for address components.
+
+    Attributes:
+        pref: Prefecture in romaji.
+        city: City in romaji.
+        town: Town in romaji.
+        full: Full address in romaji.
+    """
+
+    pref: str = ""
+    city: str = ""
+    town: str = ""
+    full: str = ""
+
+
+@dataclass(frozen=True)
+class ToorinaInfo:
+    """Kyoto street name (通り名) information.
+
+    Only present for Kyoto city addresses that include street directions.
+
+    Attributes:
+        value: Street name value (e.g., "烏丸通御池上ル").
+        full_address_with_toorina: Full address including street name.
+    """
+
+    value: str = ""
+    full_address_with_toorina: str = ""
 
 
 @dataclass(frozen=True)
@@ -181,9 +219,11 @@ class NormalizeResult:
         address: Structured address components.
         address_variants: Data-source-specific address representations.
         kana: Katakana readings.
+        romaji: Romaji (romanized) readings.
         codes: Postal and administrative codes.
         geo: Geographic coordinates.
         meta: Match metadata.
+        toorina: Kyoto street name info (通り名) - only present for Kyoto addresses.
         building_info: Present only when ``meta.is_tatemono`` is True.
         jigyosyo_info: Present only when ``meta.is_jigyosyo`` is True.
         raw: The raw JSON dict returned by the API.
@@ -192,9 +232,11 @@ class NormalizeResult:
     address: AddressInfo = field(default_factory=AddressInfo)
     address_variants: AddressVariantsInfo = field(default_factory=AddressVariantsInfo)
     kana: KanaInfo = field(default_factory=KanaInfo)
+    romaji: Optional[RomajiInfo] = None
     codes: CodesInfo = field(default_factory=CodesInfo)
     geo: GeoInfo = field(default_factory=GeoInfo)
     meta: MetaInfo = field(default_factory=MetaInfo)
+    toorina: Optional[ToorinaInfo] = None
     building_info: Optional[BuildingInfo] = None
     jigyosyo_info: Optional[JigyosyoInfo] = None
     raw: Dict[str, Any] = field(default_factory=dict, repr=False)
@@ -393,9 +435,32 @@ def _parse_geo(data: Dict[str, Any]) -> GeoInfo:
 def _parse_meta(data: Dict[str, Any]) -> MetaInfo:
     return MetaInfo(
         match_type=data.get("match_type", ""),
+        match_level=data.get("match_level", 0),
+        match_level_label=data.get("match_level_label", ""),
+        confidence=data.get("confidence", 0.0),
         is_jigyosyo=data.get("is_jigyosyo", False),
         is_tatemono=data.get("is_tatemono", False),
         version=data.get("version", ""),
+    )
+
+
+def _parse_romaji(data: Optional[Dict[str, Any]]) -> Optional[RomajiInfo]:
+    if data is None:
+        return None
+    return RomajiInfo(
+        pref=data.get("pref", ""),
+        city=data.get("city", ""),
+        town=data.get("town", ""),
+        full=data.get("full", ""),
+    )
+
+
+def _parse_toorina(data: Optional[Dict[str, Any]]) -> Optional[ToorinaInfo]:
+    if data is None:
+        return None
+    return ToorinaInfo(
+        value=data.get("value", ""),
+        full_address_with_toorina=data.get("full_address_with_toorina", ""),
     )
 
 
@@ -428,9 +493,11 @@ def _parse_normalize_result(data: Dict[str, Any]) -> NormalizeResult:
         address=_parse_address_info(data.get("address", {})),
         address_variants=_parse_address_variants(data.get("address_variants", {})),
         kana=_parse_kana(data.get("kana", {})),
+        romaji=_parse_romaji(data.get("romaji")),
         codes=_parse_codes(data.get("codes", {})),
         geo=_parse_geo(data.get("geo", {})),
         meta=_parse_meta(data.get("meta", {})),
+        toorina=_parse_toorina(data.get("toorina")),
         building_info=_parse_building_info(data.get("building_info")),
         jigyosyo_info=_parse_jigyosyo_info(data.get("jigyosyo_info")),
         raw=data,
