@@ -1,10 +1,12 @@
-import { CheckCircle, AlertCircle, Building2, Briefcase, Navigation, Shield, Globe, ExternalLink } from 'lucide-react';
-import type { NormalizeResponse } from '../types/address';
+import { CheckCircle, AlertCircle, Building2, Briefcase, Navigation, Shield, Globe, ExternalLink, MapPinned, HelpCircle, MapPin } from 'lucide-react';
+import type { NormalizeResponse, AmbiguousMatchDetail } from '../types/address';
 
 interface DemoResultProps {
   result: NormalizeResponse | null;
   inputAddress: string | null;
   error: string | null;
+  ambiguousMatch?: AmbiguousMatchDetail | null;
+  onSelectCandidate?: (candidate: string) => void;
 }
 
 const ISSUES_URL = 'https://github.com/1000ri-jp/normal-jusho/issues/new';
@@ -18,7 +20,54 @@ function buildIssueUrl(address: string) {
   return `${ISSUES_URL}?${params.toString()}`;
 }
 
-export function DemoResult({ result, inputAddress, error }: DemoResultProps) {
+export function DemoResult({ result, inputAddress, error, ambiguousMatch, onSelectCandidate }: DemoResultProps) {
+  // Ambiguous match - show candidates
+  if (ambiguousMatch) {
+    return (
+      <div className="mt-6 p-6 bg-amber-50 border border-amber-200 rounded-xl">
+        <div className="flex items-center gap-2 text-amber-700 mb-4">
+          <HelpCircle className="w-5 h-5" />
+          <span className="font-medium">複数の候補があります</span>
+        </div>
+
+        {inputAddress && (
+          <div className="mb-4">
+            <p className="text-sm text-gray-500 mb-1">入力</p>
+            <p className="text-gray-700 bg-white px-3 py-2 rounded-lg border border-gray-200">
+              {inputAddress}
+            </p>
+          </div>
+        )}
+
+        <p className="text-sm text-amber-800 mb-3">
+          同じ町名が複数の市区町村に存在します。以下から選択するか、都道府県・市区町村を追加して再検索してください。
+        </p>
+
+        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+          {ambiguousMatch.candidates.slice(0, 9).map((candidate, index) => (
+            <button
+              key={candidate}
+              onClick={() => onSelectCandidate?.(candidate + inputAddress)}
+              className="flex items-center gap-2 p-3 bg-white border border-amber-200 rounded-lg hover:bg-amber-100 hover:border-amber-300 transition-colors text-left"
+            >
+              <MapPin className="w-4 h-4 text-amber-600 flex-shrink-0" />
+              <span className="text-gray-800 text-sm">{candidate}</span>
+              {index === 0 && (
+                <span className="ml-auto text-xs bg-amber-200 text-amber-800 px-1.5 py-0.5 rounded">推奨</span>
+              )}
+            </button>
+          ))}
+        </div>
+
+        {ambiguousMatch.candidates.length > 9 && (
+          <p className="mt-3 text-xs text-amber-600">
+            他 {ambiguousMatch.candidates.length - 9} 件の候補があります
+          </p>
+        )}
+      </div>
+    );
+  }
+
   if (error) {
     return (
       <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-xl">
@@ -107,6 +156,17 @@ export function DemoResult({ result, inputAddress, error }: DemoResultProps) {
           </div>
         )}
 
+        {/* Toorina (Street name for Kyoto addresses) */}
+        {result.toorina && (
+          <div className="flex items-center gap-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+            <MapPinned className="w-6 h-6 text-amber-600 flex-shrink-0" />
+            <div className="flex-1">
+              <p className="text-sm text-amber-600">通り名（京都住所）</p>
+              <p className="text-lg font-bold text-amber-900">{result.toorina}</p>
+            </div>
+          </div>
+        )}
+
         {/* Output - Full address */}
         <div>
           <p className="text-sm text-gray-500 mb-1">正規化結果</p>
@@ -123,6 +183,16 @@ export function DemoResult({ result, inputAddress, error }: DemoResultProps) {
             </div>
           )}
         </div>
+
+        {/* Output - Full address with Toorina (Kyoto) */}
+        {result.toorina && result.normalized_address_type1_with_toorina && (
+          <div>
+            <p className="text-sm text-gray-500 mb-1">正規化結果（通り名付き）</p>
+            <p className="text-lg font-medium text-amber-800 bg-amber-50 px-3 py-2 rounded-lg border border-amber-300">
+              {result.normalized_address_type1_with_toorina}
+            </p>
+          </div>
+        )}
 
         {/* Confidence & Match Level */}
         {(result.confidence !== undefined || result.match_level_label) && (
@@ -180,6 +250,12 @@ export function DemoResult({ result, inputAddress, error }: DemoResultProps) {
 
         {/* Address details row 2 */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          {result.toorina && (
+            <div className="bg-amber-50 p-3 rounded-lg border border-amber-200">
+              <p className="text-xs text-amber-600 mb-1">通り名</p>
+              <p className="font-medium text-amber-800">{result.toorina}</p>
+            </div>
+          )}
           {result.koaza && (
             <div className="bg-white p-3 rounded-lg border border-gray-200">
               <p className="text-xs text-gray-500 mb-1">小字</p>

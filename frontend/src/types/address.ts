@@ -57,8 +57,19 @@ export interface NormalizeResponse {
   confidence?: number;
   match_level?: number;
   match_level_label?: string;
+  // 通り名（京都住所用）
+  toorina?: string;
+  normalized_address_with_toorina?: string;
+  normalized_address_type1_with_toorina?: string;
+  normalized_address_type5_with_toorina?: string;
 }
 
 export interface NormalizeError {
-  detail: string;
+  detail: string | AmbiguousMatchDetail;
+}
+
+export interface AmbiguousMatchDetail {
+  error: 'ambiguous_town_match';
+  message: string;
+  candidates: string[];
 }

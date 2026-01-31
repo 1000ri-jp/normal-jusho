@@ -7,7 +7,7 @@ import { useNormalize } from '../hooks/useNormalize';
 
 export function Hero() {
   const [address, setAddress] = useState('');
-  const { normalize, result, inputAddress, error, isLoading } = useNormalize();
+  const { normalize, result, inputAddress, error, ambiguousMatch, isLoading } = useNormalize();
 
   const handleSubmit = () => {
     normalize(address);
@@ -16,6 +16,11 @@ export function Hero() {
   const handleSampleSelect = (sampleAddress: string) => {
     setAddress(sampleAddress);
     normalize(sampleAddress);
+  };
+
+  const handleSelectCandidate = (candidateAddress: string) => {
+    setAddress(candidateAddress);
+    normalize(candidateAddress);
   };
 
   return (
@@ -53,7 +58,13 @@ export function Hero() {
             disabled={isLoading}
           />
 
-          <DemoResult result={result} inputAddress={inputAddress} error={error} />
+          <DemoResult
+            result={result}
+            inputAddress={inputAddress}
+            error={error}
+            ambiguousMatch={ambiguousMatch}
+            onSelectCandidate={handleSelectCandidate}
+          />
         </div>
       </div>
     </section>
